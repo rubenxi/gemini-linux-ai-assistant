@@ -116,7 +116,7 @@ else
     if [[ "$response" == *"BASH:"* ]]; then
     command=${response//BASH:/}
     command="${command//\`\`\`bash/}"
-    command="${command//\`\`\`/}"
+    command="${command//\`/}"
 
     konsole --noclose -e bash -i -c "read -p 'Do you want to run the command? (Enter to confirm): $command' confirm; bash -c '$command' &"
 
