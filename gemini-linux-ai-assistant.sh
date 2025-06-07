@@ -114,14 +114,11 @@ else
     The question is: $text")"
 
     if [[ "$response" == *"BASH:"* ]]; then
-    command="$(echo "$response" | cut -d':' -f2-)"
+    command=${response//BASH:/}
     command="${command//\`\`\`bash/}"
     command="${command//\`\`\`/}"
 
-    konsole --noclose -e sh -c '
-        read -p "Do you want to run the command? (Enter to confirm): $1 " confirm
-        eval "$1"
-    ' sh "$command" &
+    konsole --noclose -e bash -i -c "read -p 'Do you want to run the command? (Enter to confirm): $command' confirm; bash -c '$command' &"
 
     else
       zenity --text-info --title="Answer to the question" --width=500 --height=400 --filename=<(echo  "${response//\\}")
