@@ -19,6 +19,9 @@ It supports:
   For example, if the question is "How do I power off my computer?", Gemini may respond with `shutdown`, and a Konsole window will appear with the command, waiting for the user to press Enter to execute it.  
   ![image](https://github.com/user-attachments/assets/6814dc54-9f38-4da5-94ac-30c6688f11b4)
 
+- **Short time memory**: When clicking "Ask again" it's possible to ask another question and Gemini will take in mind the context from the last question and answer given, answering the new question according to it.
+<img width="726" height="556" alt="image" src="https://github.com/user-attachments/assets/dc5326d4-8250-48cb-ac3a-966ad1627eb0" />
+
 It is recommended to set up a shortcut to run the script, such as `Ctrl + Win + PrtSc`.
 
 ---
