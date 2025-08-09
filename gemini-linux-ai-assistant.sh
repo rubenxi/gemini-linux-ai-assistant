@@ -1,15 +1,21 @@
 #!/bin/bash
 
+api="${GOOGLE_API_KEY}"
+
 spectacle -r -b -o /tmp/screenshot.png &
 pid=$!
+gemini_version="gemini-2.5-flash"
 
-text=$(zenity --text-info --title="Input" --editable --text="Enter your question text:")
+text=$(zenity --text-info --ok-label="Ask" --title="Input" --editable --text="Enter your question text:")
+if [ "$?" != 0 ]
+then
+    exit
+fi
 
 echo "Waiting for spectacle (PID: $pid)..."
 
 wait $pid
 
-api="${GOOGLE_API_KEY}"
 
 get_response() {
 
@@ -49,7 +55,7 @@ get_response() {
 
     file_uri=$(jq -r ".file.uri" /tmp/file_info.json)
 
-    curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$api" \
+    curl "https://generativelanguage.googleapis.com/v1beta/models/$gemini_version:generateContent?key=$api" \
         -H 'Content-Type: application/json' \
         -X POST \
         -d "{
@@ -77,7 +83,7 @@ get_response_no_pic() {
     local description="$1"
     tmp_header_file=upload-header.tmp
 
-curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$api" \
+curl "https://generativelanguage.googleapis.com/v1beta/models/$gemini_version:generateContent?key=$api" \
     -H 'Content-Type: application/json' \
     -X POST \
     -d "$(jq -n --arg description "$description" '{
@@ -105,7 +111,7 @@ then
     name_gemini=$(jq ".file.name" /tmp/file_info.json | cut -d'/' -f2- | cut -d'"' -f1-1)
     curl --request "DELETE" https://generativelanguage.googleapis.com/v1beta/files/$name_gemini?key=$api
 
-    zenity --text-info --title="Answer to the question" --width=500 --height=400 --filename=<(echo  "$response")
+    zenity --text-info --ok-label="Ask again" --title="Answer to the question" --width=500 --height=400 --filename=<(echo  "$response")
     rm "/tmp/screenshot.png"
     rm "/tmp/screenshot_half.png"
 
@@ -114,15 +120,36 @@ else
     The question is: $text")"
 
     if [[ "$response" == *"BASH:"* ]]; then
+    echo "$response"
     command=${response//BASH:/}
     command="${command//\`\`\`bash/}"
     command="${command//\`/}"
-
+    echo "$command"
     konsole --noclose -e bash -i -c "read -p 'Do you want to run the command? (Enter to confirm): $command' confirm; bash -c '$command' &"
 
     else
-      zenity --text-info --title="Answer to the question" --width=500 --height=400 --filename=<(echo  "${response//\\}")
+        zenity --text-info --ok-label="Ask again" --title="Answer to the question" --width=500 --height=400 --filename=<(echo  "${response//\\}")
+        if [ "$?" != 0 ]
+        then
+          exit
+        fi
+
     fi
 fi
 
-
+while [ 1 ]
+  do
+    previous_question="$text"
+    text=$(zenity --text-info --title="Input" --editable --text="Enter your question text:")
+    if [ "$?" != 0 ]
+    then
+        exit
+    fi
+    response="$(get_response_no_pic "Answer the new question in a brief but precise way taking in mind the context of the last conversation. This is the last question: $text. This is the answer you gave to it: $response.
+    The new question is: $text.")"
+    zenity --text-info --ok-label="Ask" --title="Answer to the question" --width=500 --height=400 --filename=<(echo  "${response//\\}")
+    if [ "$?" != 0 ]
+    then
+      exit
+    fi
+  done
