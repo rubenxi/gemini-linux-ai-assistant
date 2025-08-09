@@ -6,7 +6,7 @@ spectacle -r -b -o /tmp/screenshot.png &
 pid=$!
 gemini_version="gemini-2.5-flash"
 
-text=$(zenity --text-info --ok-label="Ask" --title="Input" --editable --text="Enter your question text:")
+text=$(zenity --text-info --ok-label="Ask" --title="Ask a question" --editable --text="Enter your question text:")
 if [ "$?" != 0 ]
 then
     exit
@@ -140,14 +140,14 @@ fi
 while [ 1 ]
   do
     previous_question="$text"
-    text=$(zenity --text-info --title="Input" --editable --text="Enter your question text:")
+    text=$(zenity --text-info --ok-label="Ask again" --title="Ask again" --editable --text="Enter your question text:")
     if [ "$?" != 0 ]
     then
         exit
     fi
     response="$(get_response_no_pic "Answer the new question in a brief but precise way taking in mind the context of the last conversation. This is the last question: $text. This is the answer you gave to it: $response.
     The new question is: $text.")"
-    zenity --text-info --ok-label="Ask" --title="Answer to the question" --width=500 --height=400 --filename=<(echo  "${response//\\}")
+    zenity --text-info --ok-label="Ask again" --title="Answer to the question" --width=500 --height=400 --filename=<(echo  "${response//\\}")
     if [ "$?" != 0 ]
     then
       exit
